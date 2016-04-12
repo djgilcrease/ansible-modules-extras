@@ -1,14 +1,27 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+# (c) 2016, Dj Gilcrease <digitalxero@gmail.com>
+#
+# This file is part of Ansible
+#
+# Ansible is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Ansible is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
 import functools
 
-try:
-    import requests
-    HAS_REQUESTS=True
-except ImportError:
-    HAS_REQUESTS=False
-
+from ansible.module_utils import urls
 
 try:
     import json
@@ -27,7 +40,7 @@ module: infoblox
 short_description: Manage InfoBlox
 description:
      - Manage InfoBlox
-version_added: "2.0"
+version_added: "2.1"
 author: "Dj Gilcrease (https://github.com/djgilcrease)"
 options:
     host:
@@ -35,7 +48,7 @@ options:
           - Infoblox Host
         required: true
         default: null
-    verify_ssl:
+    validate_certs:
         description:
           - Validate SSL certs.  Note, if running on python without SSLContext
             support (typically, python < 2.7.9) you will have to set this to C(no)
@@ -136,7 +149,7 @@ EXAMPLES = '''
     wapi_version: '1.6'
     dns_view: default
     network_view: default
-    verify_ssl: no
+    validate_certs: no
     fact_base: "{{ infoblox }}"
     action:
       get_network:
@@ -162,7 +175,7 @@ EXAMPLES = '''
     wapi_version: '1.6'
     dns_view: default
     network_view: default
-    verify_ssl: no
+    validate_certs: no
     fact_base: "{{ infoblox }}"
     action:
       get_ip_by_host:
@@ -192,7 +205,7 @@ EXAMPLES = '''
     wapi_version: '1.6'
     dns_view: default
     network_view: default
-    verify_ssl: no
+    validate_certs: no
     fact_base: "{{ infoblox }}"
     action:
       create_host_record:
@@ -205,6 +218,23 @@ EXAMPLES = '''
   set_fact:
       vm_ip: "{{ infoblox_info.infoblox.create_host_record.ipv4addrs[0].ipv4addr }}"
   when: infoblox_info.infoblox.create_host_record is defined
+'''
+
+RETURN = '''
+infoblox:
+    description: Return dictionary with action name as the key and the JSON returned from InfoBlox as the value
+    returned: success
+    type: dict
+    sample:
+        infoblox:
+          get_ip_by_host:
+            ips:
+              - 10.146.24.46
+        infoblox:
+          get_network:
+            _ref: network/ZG5zLm5ldHdvcmskMTAuMTQ2LjI0LjAvMjIvMA:10.146.24.0/22/default
+            network: 10.146.24.0/22
+            netmask: 22
 '''
 
 
@@ -226,7 +256,7 @@ class InfobloxBadInputParameter(Exception):
 class Infoblox(object):
     """https://ipam.illinois.edu/wapidoc/index.html"""
 
-    def __init__(self, host, user, password, wapi_version, dns_view, network_view, verify_ssl=False):
+    def __init__(self, host, user, password, wapi_version, dns_view, network_view, validate_certs=False):
         """ Class initialization method
         :param host: IBA IP address of management interface
         :param user: IBA user name
@@ -234,7 +264,7 @@ class Infoblox(object):
         :param wapi_version: IBA WAPI version (example: 1.0)
         :param dns_view: IBA default view
         :param network_view: IBA default network view
-        :param verify_ssl: IBA SSL certificate validation (example: False)
+        :param validate_certs: IBA SSL certificate validation (example: False)
         """
         self.host = host
         self.user = user
@@ -242,23 +272,23 @@ class Infoblox(object):
         self.wapi_version = wapi_version
         self.dns_view = dns_view
         self.network_view = network_view
-        self.verify_ssl = verify_ssl
+        self.validate_certs = validate_certs
         self.base_url = 'https://{host}/wapi/v{wapi_version}'.format(host=self.host, wapi_version=self.wapi_version)
 
-        # curry the requests calls so we dont have to see auth=(self.user, self.password), verify=self.verify_ssl
+        # curry the requests calls so we dont have to see auth=(self.user, self.password), verify=self.validate_certs
         # everywhere we make a request
-        self._get = functools.partial(requests.get, auth=(self.user, self.password), verify=self.verify_ssl)
-        self._post = functools.partial(requests.post, auth=(self.user, self.password), verify=self.verify_ssl)
-        self._put = functools.partial(requests.put, auth=(self.user, self.password), verify=self.verify_ssl)
-        self._delete = functools.partial(requests.delete, auth=(self.user, self.password), verify=self.verify_ssl)
+        self._get = functools.partial(urls.open_url, method='GET', url_username=self.user, url_password=self.password, validate_certs=self.validate_certs, force_basic_auth=True)
+        self._post = functools.partial(urls.open_url, method='POST', url_username=self.user, url_password=self.password, validate_certs=self.validate_certs, force_basic_auth=True)
+        self._put = functools.partial(urls.open_url, method='PUT', url_username=self.user, url_password=self.password, validate_certs=self.validate_certs, force_basic_auth=True)
+        self._delete = functools.partial(urls.open_url, method='DELETE', url_username=self.user, url_password=self.password, validate_certs=self.validate_certs, force_basic_auth=True)
 
-    def request(self, url, rqtype="get", **kwargs):
+    def request(self, url, rqtype="get", data=None, **kwargs):
         req_func = getattr(self, '_' + rqtype)
-        r = req_func(url=url, **kwargs)
-        if r.status_code in [200, 201]:
-            return r.json()
+        r = req_func(url=url, data=data, **kwargs)
+        if r.getcode() in [200, 201]:
+            return json.loads(r.read())
         else:
-            r_json = r.json()
+            r_json = json.loads(r.read())
             if 'text' in r_json:
                 if 'code' in r_json and r_json['code'] == 'Client.Ibap.Data':
                     raise InfobloxNoIPavailableException(r_json['text'])
@@ -727,16 +757,13 @@ def main():
             wapi_version=dict(required=False, type='str', default='1.6'),
             dns_view=dict(required=False, type='str', default='internal'),
             network_view=dict(required=False, type='str', default='default'),
-            verify_ssl=dict(required=False, type='bool', default=False),
+            validate_certs=dict(required=False, type='bool', default=False),
             fact_base=dict(required=False, type='dict', default={}),
             action=dict(required=True, type='dict'),
         ),
         supports_check_mode=False,
         mutually_exclusive=[],
         required_together=[])
-
-    if not HAS_REQUESTS:
-        module.fail_json(msg='Missing requests dependancy')
 
     if not HAS_JSON:
         module.fail_json(msg='Missing json or simplejson dependancy')
@@ -754,7 +781,7 @@ def main():
 
         try:
             infoblox[name], changed, msg = func(**kwargs)
-        except Exception as e:
+        except Exception:
             module.fail_json(msg=traceback.format_exc())
 
     module.exit_json(msg=msg,
