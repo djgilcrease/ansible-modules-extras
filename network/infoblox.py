@@ -133,10 +133,6 @@ options:
             - get_network_extattrs
             - update_network_extattrs
             - delete_network_extattrs
-
-requirements:
-  - "python >= 2.6"
-  - requests
 '''
 
 
