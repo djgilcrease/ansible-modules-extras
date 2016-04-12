@@ -1,13 +1,24 @@
-#!/usr/bin/env python2
+#!/usr/bin/python
 
 import re
-import requests
 import functools
 
 try:
-    import json
+    import requests
+    HAS_REQUESTS=True
 except ImportError:
-    import simplejson as json
+    HAS_REQUESTS=False
+
+
+try:
+    import json
+    HAS_JSON=True
+except ImportError:
+    try:
+        import simplejson as json
+        HAS_JSON=True
+    except ImportError:
+        HAS_JSON=False
 
 
 DOCUMENTATION = '''
@@ -723,6 +734,12 @@ def main():
         supports_check_mode=False,
         mutually_exclusive=[],
         required_together=[])
+
+    if not HAS_REQUESTS:
+        module.fail_json(msg='Missing requests dependancy')
+
+    if not HAS_JSON:
+        module.fail_json(msg='Missing json or simplejson dependancy')
 
     infoblox = module.params.pop('fact_base', {})
     action = module.params.pop('action')
