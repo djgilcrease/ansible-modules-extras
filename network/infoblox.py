@@ -40,7 +40,7 @@ module: infoblox
 short_description: Manage InfoBlox
 description:
      - Manage InfoBlox
-version_added: "2.1"
+version_added: "2.2"
 author: "Dj Gilcrease (https://github.com/djgilcrease)"
 options:
     host:
