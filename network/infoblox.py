@@ -443,6 +443,12 @@ class Infoblox(object):
 
         https://ipam.illinois.edu/wapidoc/objects/record.cname.html
         """
+        rest_url = self.base_url + '/record:cname?name=' + fqdn + '&view=' + self.dns_view + '&_return_fields=' + fields
+        dns_view = self.request(rest_url)
+        cname_ref = dns_view[0]['_ref']
+        if cname_ref and re.match("record:cname\/[^:]+:([^\/]+)\/", cname_ref).group(1) == fqdn:
+            return None, False, "CNAME: {0}, already exists".format(fqdn)
+            
         rest_url = self.base_url + '/record:cname' + '?_return_fields=' + fields
         payload = {
             "canonical": canonical,
@@ -476,16 +482,19 @@ class Infoblox(object):
 
         https://ipam.illinois.edu/wapidoc/objects/record.cname.html
         """
-        rest_url = self.base_url + '/record:cname' + '?_return_fields=' + fields
-        host_info = self.request(rest_url, data=json.dumps({'name': name}))
-        cname_ref = host_info[0]['_ref']
-        payload = {
-            "canonical": canonical
-        }
-        rest_url = self.base_url + '/' + cname_ref + '?_return_fields=' + fields
-        host_info = self.request(rest_url, rqtype="put", data=json.dumps(payload))
+        rest_url = self.base_url + '/record:cname?name=' + fqdn + '&view=' + self.dns_view + '&_return_fields=' + fields
+        dns_view = self.request(rest_url)
+        cname_ref = dns_view[0]['_ref']
+        if cname_ref and re.match("record:cname\/[^:]+:([^\/]+)\/", cname_ref).group(1) == fqdn:
+            payload = {
+                "canonical": canonical
+            }
+            rest_url = self.base_url + '/' + cname_ref + '?_return_fields=' + fields
+            host_info = self.request(rest_url, rqtype="put", data=json.dumps(payload))
 
-        return host_info, True, "Updated CNAME: {0} -> {1}".format(name, canonical)
+            return host_info, True, "Updated CNAME: {0} -> {1}".format(name, canonical)
+
+        return None, False, "CNAME: {0}, does not exist".format(fqdn)
 
     def create_dhcp_range(self, start_ip_v4, end_ip_v4, fields='comment,end_addr,network,network_view,start_addr,bootserver,bootfile'):
         """ Implements IBA REST API call to add DHCP range for given start and end addresses
