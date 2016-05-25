@@ -280,6 +280,12 @@ class Infoblox(object):
 
     def request(self, url, rqtype="get", data=None, **kwargs):
         req_func = getattr(self, '_' + rqtype)
+        
+        if rqtype in ['post', 'put']:
+            headers = kwargs.pop('headers', {})
+            headers['Content-Type'] = 'application/json'
+            kwargs['headers'] = headers
+            
         r = req_func(url=url, data=data, **kwargs)
         if r.getcode() in [200, 201]:
             return json.loads(r.read())
