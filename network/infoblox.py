@@ -305,9 +305,9 @@ class Infoblox(object):
             rest_url = self.base_url + '/' + net_ref + '?_function=next_available_ip&num={num}'.format(num=num)
             ip_info = self.request(rest_url, rqtype="post")
 
-            return ip_info, False, "Fetched {} IPs on {}".format(num, network)
+            return ip_info, False, "Fetched {0} IPs on {1}".format(num, network)
 
-        return None, False, "{} IPs are not free on {}".format(num, network)
+        return None, False, "{0} IPs are not free on {1}".format(num, network)
 
     def create_host_record(self, address, fqdn, fields='name,ipv4addrs,zone,aliases'):
         """ Implements IBA REST API call to create IBA host record
@@ -334,7 +334,7 @@ class Infoblox(object):
         }
         host_info = self.request(rest_url, rqtype="post", data=json.dumps(payload))
 
-        return host_info, True, "Created Host: {} for {}".format(address, fqdn)
+        return host_info, True, "Created Host: {0} for {1}".format(address, fqdn)
 
     def create_txt_record(self, text, fqdn, fields='name,text,view'):
         """ Implements IBA REST API call to create IBA txt record
@@ -350,7 +350,7 @@ class Infoblox(object):
         }
         host_info = self.request(rest_url, rqtype="post", data=json.dumps(payload))
 
-        return host_info, True, "Created TXT: {} for {}".format(text, fqdn)
+        return host_info, True, "Created TXT: {0} for {1}".format(text, fqdn)
 
     def delete_host_record(self, fqdn, fields='name,ipv4addrs,zone,aliases'):
         """ Implements IBA REST API call to delete IBA host record
@@ -363,9 +363,9 @@ class Infoblox(object):
             if host_ref and re.match("record:host\/[^:]+:([^\/]+)\/", host_ref).group(1) == fqdn:
                 rest_url = self.base_url + '/' + host_ref
                 host_info = self.request(rest_url, rqtype="delete")
-                return host_info, True, "Deleted Host: {}".format(fqdn)
+                return host_info, True, "Deleted Host: {0}".format(fqdn)
 
-        return None, False, "Host: {}, does not exist".format(fqdn)
+        return None, False, "Host: {0}, does not exist".format(fqdn)
 
     def delete_txt_record(self, fqdn, fields='name,text,view'):
         """ Implements IBA REST API call to delete IBA TXT record
@@ -378,9 +378,9 @@ class Infoblox(object):
             if host_ref and re.match("record:txt\/[^:]+:([^\/]+)\/", host_ref).group(1) == fqdn:
                 rest_url = self.base_url + '/' + host_ref
                 host_info = self.request(rest_url, rqtype="delete")
-                return host_info, True, "Deleted TXT: {}".format(fqdn)
+                return host_info, True, "Deleted TXT: {0}".format(fqdn)
 
-        return None, False, "TXT: {}, does not exist".format(fqdn)
+        return None, False, "TXT: {0}, does not exist".format(fqdn)
 
     def add_host_alias(self, host_fqdn, alias_fqdn, fields='name,ipv4addrs,zone,aliases'):
         """ Implements IBA REST API call to add an alias to IBA host record
@@ -395,15 +395,15 @@ class Infoblox(object):
             if host_ref and re.match("record:host\/[^:]+:([^\/]+)\/", host_ref).group(1) == fqdn:
                 aliases = dns_view[0].get('aliases', [])
                 if alias_fqdn in aliases:
-                    return None, False, "ALIAS: {} for {} already exists".format(alias_fqdn, host_fqdn)
+                    return None, False, "ALIAS: {0} for {1} already exists".format(alias_fqdn, host_fqdn)
 
                 payload['aliases'] += aliases
 
                 rest_url = self.base_url + '/' + host_ref + '?_return_fields=' + fields
                 host_info = self.request(rest_url, rqtype="put", data=json.dumps(payload))
-                return host_info, True, "Added ALIAS: {} for {}".format(alias_fqdn, host_fqdn)
+                return host_info, True, "Added ALIAS: {0} for {1}".format(alias_fqdn, host_fqdn)
 
-        return None, False, "Host: {}, does not exist".format(host_fqdn)
+        return None, False, "Host: {0}, does not exist".format(host_fqdn)
 
     def delete_host_alias(self, host_fqdn, alias_fqdn, fields='name,aliases'):
         """ Implements IBA REST API call to add an alias to IBA host record
@@ -420,15 +420,15 @@ class Infoblox(object):
             and 'aliases' in dns_view[0]):
             aliases = dns_view[0]['aliases']
             if fqdn not in aliases:
-                return None, False, "ALIAS: {} for {}, does not exist".format(alias_fqdn, host_fqdn)
+                return None, False, "ALIAS: {0} for {1}, does not exist".format(alias_fqdn, host_fqdn)
 
             aliases.remove(alias_fqdn)
             payload = {"aliases": aliases}
             rest_url = self.base_url + '/' + host_ref + '&_return_fields=' + fields
             host_info = self.request(rest_url, rqtype="put", data=json.dumps(payload))
-            return host_info, True, "Deleted ALIAS: {} for {}".format(alias_fqdn, host_fqdn)
+            return host_info, True, "Deleted ALIAS: {0} for {1}".format(alias_fqdn, host_fqdn)
 
-        return None, False, "Host: {} for {}, does not exist".format(alias_fqdn, host_fqdn)
+        return None, False, "Host: {0} for {1}, does not exist".format(alias_fqdn, host_fqdn)
 
     def create_cname_record(self, canonical, name, fields='canonical,name,view'):
         """ Implements IBA REST API call to create IBA cname record
@@ -445,7 +445,7 @@ class Infoblox(object):
         }
         host_info = self.request(rest_url, rqtype="post", data=json.dumps(payload))
 
-        return host_info, True, "Created CNAME: {} -> {}".format(name, canonical)
+        return host_info, True, "Created CNAME: {0} -> {1}".format(name, canonical)
 
     def delete_cname_record(self, fqdn, fields='canonical,name,view'):
         """ Implements IBA REST API call to delete IBA cname record
@@ -459,9 +459,9 @@ class Infoblox(object):
         if cname_ref and re.match("record:cname\/[^:]+:([^\/]+)\/", cname_ref).group(1) == fqdn:
             rest_url = self.base_url + '/' + cname_ref
             host_info = self.request(rest_url, rqtype="delete")
-            return host_info, True, "Deleted CNAME: {}".format(fqdn)
+            return host_info, True, "Deleted CNAME: {0}".format(fqdn)
 
-        return None, False, "CNAME: {}, does not exist".format(fqdn)
+        return None, False, "CNAME: {0}, does not exist".format(fqdn)
 
     def update_cname_record(self, canonical, name, fields='canonical,name,view'):
         """ Implements IBA REST API call to update or repoint IBA cname record
@@ -479,7 +479,7 @@ class Infoblox(object):
         rest_url = self.base_url + '/' + cname_ref + '?_return_fields=' + fields
         host_info = self.request(rest_url, rqtype="put", data=json.dumps(payload))
 
-        return host_info, True, "Updated CNAME: {} -> {}".format(name, canonical)
+        return host_info, True, "Updated CNAME: {0} -> {1}".format(name, canonical)
 
     def create_dhcp_range(self, start_ip_v4, end_ip_v4, fields='comment,end_addr,network,network_view,start_addr,bootserver,bootfile'):
         """ Implements IBA REST API call to add DHCP range for given start and end addresses
@@ -495,7 +495,7 @@ class Infoblox(object):
         }
         dhcp_range = self.request(rest_url, rqtype="post", data=json.dumps(payload))
 
-        return dhcp_range, True, "Created DHCP Range: {} - {}".format(start_ip_v4, end_ip_v4)
+        return dhcp_range, True, "Created DHCP Range: {0} - {1}".format(start_ip_v4, end_ip_v4)
 
     def delete_dhcp_range(self, start_ip_v4, end_ip_v4, fields='comment,end_addr,network,network_view,start_addr,bootserver,bootfile'):
         """ Implements IBA REST API call to delete DHCP range for given start and end addresses
@@ -507,13 +507,13 @@ class Infoblox(object):
         rest_url = self.base_url + '/range?start_addr=' + start_ip_v4 + '?end_addr=' + end_ip_v4 + '&network_view=' + self.network_view + '&_return_fields=' + fields
         network_view = self.request(rest_url)
         if not network_view:
-            return None, False, "DHCP Range: {} - {}, does not exist".format(start_ip_v4, end_ip_v4)
+            return None, False, "DHCP Range: {0} - {1}, does not exist".format(start_ip_v4, end_ip_v4)
 
         range_ref = r_json[0]['_ref']
         rest_url = self.base_url + '/' + range_ref + '&_return_fields=' + fields
         dhcp_range = self.request(rest_url, rqtype="delete")
 
-        return dhcp_range, True, "Deleted DHCP Range: {} - {}".format(start_ip_v4, end_ip_v4)
+        return dhcp_range, True, "Deleted DHCP Range: {0} - {1}".format(start_ip_v4, end_ip_v4)
 
     def get_host(self, fqdn, fields='name,ipv4addrs,zone,aliases'):
         """ Implements IBA REST API call to retrieve host record fields
@@ -524,7 +524,7 @@ class Infoblox(object):
         rest_url = self.base_url + '/record:host?name=' + fqdn + '&view=' + self.dns_view + '&_return_fields=' + fields
         host_info = self.request(rest_url)
 
-        return host_info, False, "Fetched Host: {}".format(fqdn)
+        return host_info, False, "Fetched Host: {0}".format(fqdn)
 
     def get_host_by_regexp(self, fqdn, fields='name,ipv4addrs,zone,aliases'):
         """ Implements IBA REST API call to retrieve host records by fqdn regexp filter
@@ -534,7 +534,7 @@ class Infoblox(object):
         rest_url = self.base_url + '/record:host?name~=' + fqdn + '&view=' + self.dns_view +  '&_return_fields=' + fields
         host_info = self.request(rest_url)
 
-        return host_info, False, "Fetched Host: {}".format(fqdn)
+        return host_info, False, "Fetched Host: {0}".format(fqdn)
 
     def get_txt_by_regexp(self, fqdn, fields='name,text,view'):
         """ Implements IBA REST API call to retrieve TXT records by fqdn regexp filter
@@ -544,7 +544,7 @@ class Infoblox(object):
         rest_url = self.base_url + '/record:txt?name~=' + fqdn + '&view=' + self.dns_view + '&_return_fields=' + fields
         host_info = self.request(rest_url)
 
-        return host_info, False, "Fetched TXT: {}".format(fqdn)
+        return host_info, False, "Fetched TXT: {0}".format(fqdn)
 
     def get_host_by_ip(self, ip_v4, fields='name,ipv4addrs,zone,aliases'):
         """ Implements IBA REST API call to find hostname by IP address
@@ -554,7 +554,7 @@ class Infoblox(object):
         rest_url = self.base_url + '/record:host?ipv4addr=' + ip_v4 + '&view=' + self.dns_view + '&_return_fields=' + fields
         host_info = self.request(rest_url)
 
-        return host_info, False, "Fetched Hosts by ip {}".format(ip_v4)
+        return host_info, False, "Fetched Hosts by ip {0}".format(ip_v4)
 
     def get_ip_by_host(self, fqdn):
         """ Implements IBA REST API call to find IP addresses by hostname
@@ -568,7 +568,7 @@ class Infoblox(object):
             for addr in host['ipv4addrs']:
                 ret['ips'].append(addr['ipv4addr'])
 
-        return ret, False, "Fetched IPs for {}".format(fqdn)
+        return ret, False, "Fetched IPs for {0}".format(fqdn)
 
     def get_network(self, network, fields='network,netmask,extattrs'):
         """ Implements IBA REST API call to retrieve network object fields
@@ -580,7 +580,7 @@ class Infoblox(object):
         rest_url = self.base_url + '/network?network=' + network + '&network_view=' + self.network_view + '&_return_fields=' + fields
         network_info = self.request(rest_url)
 
-        return network_info, False, "Fetched Network {}".format(network)
+        return network_info, False, "Fetched Network {0}".format(network)
 
     def get_network_by_ip(self, ip_v4, fields='network,netmask,extattrs'):
         """ Implements IBA REST API call to find network by IP address which belongs to this network
@@ -590,7 +590,7 @@ class Infoblox(object):
         rest_url = self.base_url + '/network?contains_address=' + ip_v4 + '&network_view=' + self.network_view + '&_return_fields=' + fields
         network_info = self.request(rest_url)
 
-        return network_info, False, "Fetched Network for {}".format(ip_v4)
+        return network_info, False, "Fetched Network for {0}".format(ip_v4)
 
     def get_network_by_extattrs(self, attributes, fields='network,netmask,extattrs'):
         """ Implements IBA REST API call to find a network by it's extensible attributes
@@ -606,7 +606,7 @@ class Infoblox(object):
         rest_url = self.base_url + '/network?*' + "&*".join(attributes.split(",")) + '&network_view=' + self.network_view + '&_return_fields=' + fields
         network_info = self.request(rest_url)
 
-        return network_info, False, "Fetched Network by attribute {}".format(attributes)
+        return network_info, False, "Fetched Network by attribute {0}".format(attributes)
 
     def get_host_by_extattrs(self, attributes, fields='name,ipv4addrs,zone,aliases'):
         """ Implements IBA REST API call to find host by it's extensible attributes
@@ -622,7 +622,7 @@ class Infoblox(object):
         rest_url = self.base_url + '/record:host?*' + "&*".join(attributes.split(",")) + '&view=' + self.dns_view + '&_return_fields=' + fields
         host_info = self.request(rest_url)
 
-        return host_info, False, "Fetched Hosts by attribute {}".format(attributes)
+        return host_info, False, "Fetched Hosts by attribute {0}".format(attributes)
 
     def update_network_extattrs(self, network, attributes, fields='network,netmask,extattrs'):
         """ Implements IBA REST API call to add or update network extensible attributes
@@ -646,7 +646,7 @@ class Infoblox(object):
             network['extattrs'] = extattrs
             networks.append(network)
 
-        return networks, False, "Updated Network attributes {}".format(attributes)
+        return networks, False, "Updated Network attributes {0}".format(attributes)
 
     def delete_network_extattrs(self, network, attributes, fields='network,netmask,extattrs'):
         """ Implements IBA REST API call to delete network extensible attributes
@@ -672,7 +672,7 @@ class Infoblox(object):
             self.request(rest_url, rqtype="put", data=json.dumps(payload))
             networks.append(network)
 
-        return networks, False, "Deleted Network attributes {}".format(attributes)
+        return networks, False, "Deleted Network attributes {0}".format(attributes)
 
     def create_network(self, network, fields='network,netmask,extattrs'):
         """ Implements IBA REST API call to create DHCP network object
@@ -685,7 +685,7 @@ class Infoblox(object):
         }
         network_info = self.request(rest_url, rqtype="post", data=json.dumps(payload))
 
-        return networks, False, "Created Network {}".format(network)
+        return networks, False, "Created Network {0}".format(network)
 
     def delete_network(self, network, fields='network,netmask,extattrs'):
         """ Implements IBA REST API call to delete DHCP network object
@@ -697,7 +697,7 @@ class Infoblox(object):
             rest_url = self.base_url + '/' + network['_ref']
             self.request(url=rest_url, rqtype="delete")
 
-        return network_info, False, "Deleted Network {}".format(network)
+        return network_info, False, "Deleted Network {0}".format(network)
 
     def create_networkcontainer(self, networkcontainer, fields='comment,network,network_view'):
         """ Implements IBA REST API call to create DHCP network containert object
@@ -710,7 +710,7 @@ class Infoblox(object):
         }
         network_info = self.request(rest_url, rqtype="post", data=json.dumps(payload))
 
-        return networks, False, "Created Network Conatiner {}".format(networkcontainer)
+        return networks, False, "Created Network Conatiner {0}".format(networkcontainer)
 
     def delete_networkcontainer(self, networkcontainer, fields='comment,network,network_view'):
         """ Implements IBA REST API call to delete DHCP network container object
@@ -722,7 +722,7 @@ class Infoblox(object):
             rest_url = self.base_url + '/' + network['_ref']
             self.request(url=rest_url, rqtype="delete")
 
-        return network_info, False, "Deleted Network Container {}".format(networkcontainer)
+        return network_info, False, "Deleted Network Container {0}".format(networkcontainer)
 
     def get_next_available_network(self, networkcontainer, cidr, num=1, fields='network,netmask,extattrs'):
         """ Implements IBA REST API call to retrieve next available network of network container
@@ -740,7 +740,7 @@ class Infoblox(object):
             ni = self.request(url=rest_url, rqtype="post")
             networks.append(ni)
 
-        return networks, False, "Fetched next networks in {}".format(networkcontainer)
+        return networks, False, "Fetched next networks in {0}".format(networkcontainer)
 
 
 def main():
